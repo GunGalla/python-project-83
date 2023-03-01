@@ -5,7 +5,7 @@ test:
 	poetry run pytest
 
 test-coverage:
-	poetry run pytest --cov=page-analyzer --cov-report xml
+	poetry run pytest --cov=page_analyzer --cov-report xml
 
 build:
 	poetry build
@@ -20,7 +20,7 @@ start:
 	poetry run
 
 lint:
-	poetry run flake8 page-analyzer
+	poetry run flake8 page_analyzer
 
 selfcheck:
 	poetry check
