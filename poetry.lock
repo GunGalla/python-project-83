@@ -171,7 +171,7 @@ dotenv = ["python-dotenv"]
 name = "gunicorn"
 version = "20.1.0"
 description = "WSGI HTTP Server for UNIX"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.5"
 files = [
@@ -401,7 +401,7 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtuale
 name = "setuptools"
 version = "67.4.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
-category = "dev"
+category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
@@ -447,4 +447,4 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "a68d6acf0b66dcc19b645638be75750593d12de02669ed8a9f63ce19365ffbec"
+content-hash = "c7e0dadd514fc40c36e4ef07c13714cb085bdabd7f824dc464bb8091b041cdb2"
