@@ -5,6 +5,11 @@ description = ""
 authors = ["Iaroslav <GunGalla@gmail.com>"]
 readme = "README.md"
 packages = [{include = "page_analyzer"}]
+repository = "https://github.com/GunGalla/python-project-83"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
