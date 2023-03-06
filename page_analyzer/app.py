@@ -2,13 +2,17 @@
 from flask import Flask, flash, request, render_template, redirect
 from validators.url import url
 from datetime import date
+from dotenv import load_dotenv, find_dotenv
+import os
 import psycopg2
 import psycopg2.extras
 
 app = Flask(__name__)
 
-db = 'postgresql://postgres:ze6Et2K3oCj40oK8tJ6e@containers-us-west-166.railway.app:5685/railway'
-app.config['SECRET_KEY'] = 'csadsdffdgbfgbgttfewfwerbtyrrt'
+load_dotenv(find_dotenv())
+
+db = os.getenv('DB_PATH')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 
 def connect_db():
