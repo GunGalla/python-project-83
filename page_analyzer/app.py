@@ -1,8 +1,7 @@
 """Flask app"""
 from flask import Flask, flash, request, render_template, redirect
 from validators.url import url
-from datetime import datetime
-from dotenv import load_dotenv
+from datetime import date
 import psycopg2
 import psycopg2.extras
 
@@ -43,7 +42,7 @@ def urls():
                 flash('Страница уже существует')
                 return redirect(f'/urls/{not_unique[0]}')
             cur.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
-                        (check_url, datetime.today()))
+                        (check_url, date.today()))
             db.commit()
             cur.execute(f"SELECT * FROM urls WHERE name='{check_url}'")
             new_url = cur.fetchone()
