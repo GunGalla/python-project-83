@@ -35,14 +35,14 @@ start:
 all: db-reset schema-load start
 
 schema-load:
-	psql analyzer < database.sql
+	psql railway < database.sql
 
 generate:
 	node ./bin/load.js
 
 db-reset:
-	dropdb analyzer || true
-	createdb analyzer
+	dropdb railway || true
+	createdb railway
 
 db-create:
 	createdb analyzer || echo 'skip'
