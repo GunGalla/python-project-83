@@ -1,5 +1,5 @@
 """Flask app"""
-from flask import Flask, flash, request, render_template, redirect, url_for
+from flask import Flask, flash, request, render_template, redirect
 from validators.url import url
 from datetime import datetime
 import os
