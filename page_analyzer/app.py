@@ -8,7 +8,7 @@ import psycopg2.extras
 
 app = Flask(__name__)
 
-db = 'postgresql://postgres:tX4R4m8m1J2isCDeIbEI@containers-us-west-37.railway.app:7558/railway'
+db = 'postgresql://postgres:ze6Et2K3oCj40oK8tJ6e@containers-us-west-166.railway.app:5685/railway'
 app.config['SECRET_KEY'] = 'csadsdffdgbfgbgttfewfwerbtyrrt'
 
 
