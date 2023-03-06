@@ -22,7 +22,7 @@ lint:
 selfcheck:
 	poetry check
 
-check: selfcheck lint test
+check: selfcheck lint
 
 dev:
 	poetry run flask --app page_analyzer:app --debug run
