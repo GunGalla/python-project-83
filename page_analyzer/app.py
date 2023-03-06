@@ -2,20 +2,21 @@
 from flask import Flask, flash, request, render_template, redirect
 from validators.url import url
 from datetime import datetime
-import os
+from dotenv import load_dotenv
 import psycopg2
 import psycopg2.extras
 
 app = Flask(__name__)
+
+db = 'postgresql://postgres:tX4R4m8m1J2isCDeIbEI@containers-us-west-37.railway.app:7558/railway'
 app.config['SECRET_KEY'] = 'csadsdffdgbfgbgttfewfwerbtyrrt'
-app.config.update(dict(DATABASE=os.path.join(app.root_path, 'database.sql')))
 
 
 def connect_db():
     """Database connection"""
     try:
         # trying to connect to db
-        conn = psycopg2.connect('postgresql://${{ PGUSER }}:${{ PGPASSWORD }}@${{ PGHOST }}:${{ PGPORT }}/${{ PGDATABASE }}')
+        conn = psycopg2.connect(db)
         return conn
     except ConnectionError:
         # error in case of unable to connect to db
