@@ -32,7 +32,7 @@ start:
 	poetry run gunicorn -w 5 -b 0.0.0.0:$(PORT) page_analyzer:app
 .PHONY: install
 
-all: db-create schema-load start
+all: db-reset schema-load start
 
 schema-load:
 	psql analyzer < database.sql
