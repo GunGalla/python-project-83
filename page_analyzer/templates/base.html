@@ -5,36 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Анализатор страниц</title>
     {% block style %}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     {% endblock %}
 </head>
 <body class="min-vh-100 d-flex flex-column">
-    <header class="flex-shrink-0">
-        <nav class="navbar navbar-expand-md navbar-dark bg-dark px-3">
-            <a class="navbar-brand" href="/">Анализатор страниц</a>
-            <div id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/urls">Сайты</a>
-                    </li>
-                </ul>
-            </div>
-        </nav>
-    </header>
-    {% if wrong_url %}
-    <div class="alert alert-danger" role="alert">Некорректный URL</div>
-    {% endif %}
-    <main class="flex-grow-1">
-        {% block content %}
-        {% endblock %}
-    </main>
-    <footer class="border-top py-3 mt-5 flex-shrink-0">
-        <div class="container-lg">
-            <div class="text-center">
-                <a href="https://github.com/GunGalla/python-project-83" target="_blank">Site repository</a>
-            </div>
+<header class="flex-shrink-0">
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark px-3">
+        <a class="navbar-brand" href="/">Анализатор страниц</a>
+        <div id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/urls">Сайты</a>
+                </li>
+            </ul>
         </div>
-    </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    </nav>
+</header>
+<main class="flex-grow-1">
+    {% block content %}
+    {% endblock %}
+</main>
+<footer class="border-top py-3 mt-5 flex-shrink-0">
+    <div class="container-lg">
+        <div class="text-center">
+            <a href="https://github.com/GunGalla/python-project-83" target="_blank">Site repository</a>
+        </div>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
 </body>
 </html>
