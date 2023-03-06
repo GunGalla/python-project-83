@@ -31,3 +31,21 @@ PORT ?= 8000
 start:
 	poetry run gunicorn -w 5 -b 0.0.0.0:$(PORT) page_analyzer:app
 .PHONY: install
+
+all: db-create schema-load start
+
+schema-load:
+	psql analyzer < database.sql
+
+generate:
+	node ./bin/load.js
+
+db-reset:
+	dropdb analyzer || true
+	createdb analyzer
+
+db-create:
+	createdb analyzer || echo 'skip'
+
+connect:
+	psql -d analyzer

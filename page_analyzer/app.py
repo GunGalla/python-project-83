@@ -15,7 +15,7 @@ def connect_db():
     """Database connection"""
     try:
         # trying to connect to db
-        conn = psycopg2.connect(dbname='analyser_test', user='gungalla')
+        conn = psycopg2.connect('postgresql://${{ PGUSER }}:${{ PGPASSWORD }}@${{ PGHOST }}:${{ PGPORT }}/${{ PGDATABASE }}')
         return conn
     except ConnectionError:
         # error in case of unable to connect to db
