@@ -3,8 +3,10 @@
 {% for msg in get_flashed_messages() %}
 {% if 'успешно' in msg %}
 <div class="alert alert-success" role="alert">{{ msg }}</div>
-{% else %}
+{% elif msg == 'Страница уже существует' %}
 <div class="alert alert-info" role="alert">{{ msg }}</div>
+{% else %}
+<div class="alert alert-danger" role="alert">{{ msg }}</div>
 {% endif %}
 {% endfor %}
 <div class="container-lg mt-3">
@@ -46,7 +48,7 @@
             {% for url_check in url_checks %}
             <tr>
                 <td>{{ url_check.id }}</td>
-                <td></td>
+                <td>{{ url_check.status_code }}</td>
                 <td></td>
                 <td></td>
                 <td></td>

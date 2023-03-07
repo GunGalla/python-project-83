@@ -3,6 +3,7 @@ from flask import Flask, flash, request, render_template, redirect
 from validators.url import url
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
+import requests
 import os
 import psycopg2
 import psycopg2.extras
@@ -59,10 +60,15 @@ def urls():
             return render_template('index.html')
 
     if request.method == 'GET':
-        cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute('SELECT * FROM urls ORDER BY id DESC')
         all_urls = cur.fetchall()
-        cur.execute('SELECT url_id, MAX(created_at) FROM url_checks GROUP BY url_id')
+        cur.execute('SELECT url_id, MAX(id) FROM url_checks GROUP BY url_id')
+        latest_checks = cur.fetchall()
+        ids = []
+        for item in latest_checks:
+            ids.append(item[1])
+        cur.execute(f"SELECT * FROM url_checks WHERE id in {tuple(ids)}")
         all_checks = cur.fetchall()
         return render_template('urls.html', urls=all_urls, all_checks=all_checks)
 
@@ -82,9 +88,16 @@ def dist_url(url_id):
 def url_check(url_id):
     """Check url"""
     db = connect_db()
-    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute("INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s)",
-                (f'{url_id}', date.today()))
-    db.commit()
-    flash('Страница успешно проверена')
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
+    url_name = cur.fetchone()
+    try:
+        r = requests.get(url_name[0])
+        cur.execute("INSERT INTO url_checks (url_id, status_code, created_at)"
+                    "VALUES (%s, %s, %s)",
+                    (f'{url_id}', r.status_code, date.today()))
+        db.commit()
+        flash('Страница успешно проверена')
+    except:
+        flash('Произошла ошибка при проверке')
     return redirect(f'/urls/{url_id}')
