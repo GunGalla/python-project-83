@@ -62,7 +62,9 @@ def urls():
         cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute('SELECT * FROM urls ORDER BY id DESC')
         all_urls = cur.fetchall()
-        return render_template('urls.html', urls=all_urls)
+        cur.execute('SELECT url_id, MAX(created_at) FROM url_checks GROUP BY url_id')
+        all_checks = cur.fetchall()
+        return render_template('urls.html', urls=all_urls, all_checks=all_checks)
 
 
 @app.route('/urls/<url_id>')
@@ -71,18 +73,18 @@ def dist_url(url_id):
     cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
     url = cur.fetchone()
-    return render_template('url.html', url=url)
+    cur.execute(f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC")
+    url_checks = cur.fetchall()
+    return render_template('url.html', url=url, url_checks=url_checks)
 
 
 @app.post('/urls/<url_id>/checks')
 def url_check(url_id):
     """Check url"""
-    cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-    cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
-    url = cur.fetchone()
+    db = connect_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute("INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s)",
-                (url.id, date.today()))
-    cur.execute(f"SELECT * FROM url_checks WHERE url_id={url_id}")
-    url_checks = cur.fetchall()
-    redirect(f'/urls/{url_id}')
-    return render_template('url.html', url=url, url_checks=url_checks)
+                (f'{url_id}', date.today()))
+    db.commit()
+    flash('Страница успешно проверена')
+    return redirect(f'/urls/{url_id}')

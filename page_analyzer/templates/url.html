@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 {% for msg in get_flashed_messages() %}
-{% if msg == 'Страница успешно добавлена' %}
+{% if 'успешно' in msg %}
 <div class="alert alert-success" role="alert">{{ msg }}</div>
 {% else %}
 <div class="alert alert-info" role="alert">{{ msg }}</div>
