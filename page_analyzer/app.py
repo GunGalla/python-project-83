@@ -68,9 +68,17 @@ def urls():
         ids = []
         for item in latest_checks:
             ids.append(item[1])
-        cur.execute(f"SELECT * FROM url_checks WHERE id in {tuple(ids)}")
-        all_checks = cur.fetchall()
-        return render_template('urls.html', urls=all_urls, all_checks=all_checks)
+        if len(ids) > 1:
+            cur.execute(f"SELECT * FROM url_checks WHERE id in {tuple(ids)}")
+            all_checks = cur.fetchall()
+        else:
+            cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
+            all_checks = cur.fetchall()
+        return render_template(
+            'urls.html',
+            urls=all_urls,
+            all_checks=all_checks
+        )
 
 
 @app.route('/urls/<url_id>')
@@ -79,7 +87,9 @@ def dist_url(url_id):
     cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
     url = cur.fetchone()
-    cur.execute(f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC")
+    cur.execute(
+        f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC"
+    )
     url_checks = cur.fetchall()
     return render_template('url.html', url=url, url_checks=url_checks)
 
@@ -98,6 +108,6 @@ def url_check(url_id):
                     (f'{url_id}', r.status_code, date.today()))
         db.commit()
         flash('Страница успешно проверена')
-    except:
+    except requests.exceptions:
         flash('Произошла ошибка при проверке')
     return redirect(f'/urls/{url_id}')
