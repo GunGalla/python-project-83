@@ -12,6 +12,6 @@ CREATE TABLE url_checks (
   status_code integer,
   h1 varchar(100),
   title varchar(100),
-  description varchar(255),
+  description varchar(500),
   created_at DATE
 );

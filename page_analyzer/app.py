@@ -110,10 +110,10 @@ def url_check(url_id):
     if r.status_code == 200:
         f = urllib.request.urlopen(url_name[0])
         page = BeautifulSoup(f, 'lxml')
-        print(page.h1.get_text())
-        cur.execute("INSERT INTO url_checks (url_id, status_code, h1, created_at)"
-                    "VALUES (%s, %s, %s, %s)",
-                    (f'{url_id}', r.status_code, page.h1.get_text(), date.today()))
+        description = page.select('meta[name="description"]')
+        cur.execute("INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)"
+                    "VALUES (%s, %s, %s, %s, %s, %s)",
+                    (f'{url_id}', r.status_code, page.h1.get_text(), page.title.get_text(), str(description), date.today()))
         db.commit()
         flash('Страница успешно проверена')
     else:
