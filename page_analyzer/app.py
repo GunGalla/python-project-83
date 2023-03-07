@@ -72,7 +72,8 @@ def urls():
             for item in latest_checks:
                 ids.append(item[1])
             if len(ids) > 1:
-                cur.execute(f"SELECT * FROM url_checks WHERE id in {tuple(ids)}")
+                cur.execute(f"SELECT * FROM url_checks"
+                            f"WHERE id in {tuple(ids)}")
                 all_checks = cur.fetchall()
             else:
                 cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
@@ -110,10 +111,29 @@ def url_check(url_id):
     if r.status_code == 200:
         f = urllib.request.urlopen(url_name[0])
         page = BeautifulSoup(f, 'lxml')
-        description = page.select('meta[name="description"]')
-        cur.execute("INSERT INTO url_checks (url_id, status_code, h1, title, description, created_at)"
-                    "VALUES (%s, %s, %s, %s, %s, %s)",
-                    (f'{url_id}', r.status_code, page.h1.get_text(), page.title.get_text(), str(description), date.today()))
+        attrs = '(url_id, status_code'
+        values_count = '(%s, %s'
+        values = [f'{url_id}', r.status_code]
+        description = page.find('meta', {'name': 'description'}).get('content')
+        if page.h1:
+            attrs += ', h1'
+            values_count += ', %s'
+            values.append(page.h1.get_text())
+        if page.title:
+            attrs += ', title'
+            values_count += ', %s'
+            values.append(page.title.get_text())
+        if description:
+            attrs += ', description'
+            values_count += ', %s'
+            values.append(description)
+        attrs += ', created_at)'
+        values_count += ', %s)'
+        values.append(date.today())
+        cur.execute("INSERT INTO url_checks "
+                    f"{attrs}"
+                    f"VALUES {values_count}",
+                    tuple(values))
         db.commit()
         flash('Страница успешно проверена')
     else:
