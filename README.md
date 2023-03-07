@@ -1,7 +1,7 @@
 ### Hexlet tests and linter status:
 [![Actions Status](https://github.com/GunGalla/python-project-83/workflows/hexlet-check/badge.svg)](https://github.com/GunGalla/python-project-83/actions)
 [![Actions Status](https://github.com/GunGalla/python-project-83/workflows/Python%20CI/badge.svg)](https://github.com/GunGalla/python-project-83/actions)
-[![Maintainability](https://api.codeclimate.com/v1/badges/421d69aad7bfa2b5c687/maintainability)](https://codeclimate.com/github/GunGalla/python-project-83/maintainability)
+[![Maintainability](https://api.codeclimate.com/v1/badges/0af7d0de7410173b57cf/maintainability)](https://codeclimate.com/github/GunGalla/python-project-83/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/421d69aad7bfa2b5c687/test_coverage)](https://codeclimate.com/github/GunGalla/python-project-83/test_coverage)
 
 You can check the project on this site:
