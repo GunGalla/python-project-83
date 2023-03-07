@@ -1,8 +1,10 @@
 """Flask app"""
 from flask import Flask, flash, request, render_template, redirect
+from bs4 import BeautifulSoup
 from validators.url import url
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
+import urllib
 import requests
 import os
 import psycopg2
@@ -66,19 +68,22 @@ def urls():
         cur.execute('SELECT url_id, MAX(id) FROM url_checks GROUP BY url_id')
         latest_checks = cur.fetchall()
         ids = []
-        for item in latest_checks:
-            ids.append(item[1])
-        if len(ids) > 1:
-            cur.execute(f"SELECT * FROM url_checks WHERE id in {tuple(ids)}")
-            all_checks = cur.fetchall()
+        if latest_checks:
+            for item in latest_checks:
+                ids.append(item[1])
+            if len(ids) > 1:
+                cur.execute(f"SELECT * FROM url_checks WHERE id in {tuple(ids)}")
+                all_checks = cur.fetchall()
+            else:
+                cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
+                all_checks = cur.fetchall()
+            return render_template(
+                'urls.html',
+                urls=all_urls,
+                all_checks=all_checks
+            )
         else:
-            cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
-            all_checks = cur.fetchall()
-        return render_template(
-            'urls.html',
-            urls=all_urls,
-            all_checks=all_checks
-        )
+            return render_template('urls.html', urls=all_urls)
 
 
 @app.route('/urls/<url_id>')
@@ -101,13 +106,16 @@ def url_check(url_id):
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
     url_name = cur.fetchone()
-    try:
-        r = requests.get(url_name[0])
-        cur.execute("INSERT INTO url_checks (url_id, status_code, created_at)"
-                    "VALUES (%s, %s, %s)",
-                    (f'{url_id}', r.status_code, date.today()))
+    r = requests.get(url_name[0])
+    if r.status_code == 200:
+        f = urllib.request.urlopen(url_name[0])
+        page = BeautifulSoup(f, 'lxml')
+        print(page.h1.get_text())
+        cur.execute("INSERT INTO url_checks (url_id, status_code, h1, created_at)"
+                    "VALUES (%s, %s, %s, %s)",
+                    (f'{url_id}', r.status_code, page.h1.get_text(), date.today()))
         db.commit()
         flash('Страница успешно проверена')
-    except requests.exceptions:
+    else:
         flash('Произошла ошибка при проверке')
     return redirect(f'/urls/{url_id}')
