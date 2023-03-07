@@ -1,6 +1,17 @@
 DROP TABLE IF EXISTS urls;
 CREATE TABLE urls (
   id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-  name VARCHAR(255) UNIQUE,
+  name varchar(255) UNIQUE,
+  created_at DATE
+);
+
+DROP TABLE IF EXISTS url_checks;
+CREATE TABLE url_checks (
+  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  url_id bigint REFERENCES urls(id),
+  status_code integer,
+  h1 varchar(50),
+  title varchar(100),
+  description varchar(255),
   created_at DATE
 );

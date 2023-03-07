@@ -42,6 +42,18 @@
                 <th>description</th>
                 <th>Дата создания</th>
             </tr>
+            {% if url_checks %}
+            {% for url_check in url_checks %}
+            <tr>
+                <td>{{ url_check.id }}</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ url_check.created_at }}</td>
+            </tr>
+            {% endfor %}
+            {% endif %}
             </tbody>
         </table>
     </div>

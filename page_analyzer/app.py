@@ -72,3 +72,17 @@ def dist_url(url_id):
     cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
     url = cur.fetchone()
     return render_template('url.html', url=url)
+
+
+@app.post('/urls/<url_id>/checks')
+def url_check(url_id):
+    """Check url"""
+    cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
+    url = cur.fetchone()
+    cur.execute("INSERT INTO url_checks (url_id, created_at) VALUES (%s, %s)",
+                (url.id, date.today()))
+    cur.execute(f"SELECT * FROM url_checks WHERE url_id={url_id}")
+    url_checks = cur.fetchall()
+    redirect(f'/urls/{url_id}')
+    return render_template('url.html', url=url, url_checks=url_checks)
