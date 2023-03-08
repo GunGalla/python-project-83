@@ -18,7 +18,6 @@ db = os.getenv('DATABASE_URL')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 
-
 def connect_db():
     """Database connection"""
     try:
@@ -124,7 +123,8 @@ def url_check(url_id):
             values_count += ', %s'
             values.append(page.title.get_text())
         if page.find('meta', {'name': 'description'}):
-            description = page.find('meta', {'name': 'description'}).get('content')
+            description = \
+                page.find('meta', {'name': 'description'}).get('content')
             attrs += ', description'
             values_count += ', %s'
             values.append(description)
