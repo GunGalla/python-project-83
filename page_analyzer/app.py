@@ -14,7 +14,7 @@ app = Flask(__name__)
 
 load_dotenv(find_dotenv())
 
-db = os.getenv('DATABASE_URL')
+DATABASE_URL = os.getenv('DATABASE_URL')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 
@@ -22,7 +22,7 @@ def connect_db():
     """Database connection"""
     try:
         # trying to connect to db
-        conn = psycopg2.connect(db)
+        conn = psycopg2.connect(DATABASE_URL)
         return conn
     except ConnectionError:
         # error in case of unable to connect to db
