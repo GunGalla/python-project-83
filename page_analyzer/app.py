@@ -61,7 +61,7 @@ def urls():
             flash('Некорректный URL')
             if check_url == '':
                 flash('URL Обязателен')
-            return render_template('index.html')
+            return render_template('index.html'), 422
 
     if request.method == 'GET':
         cur = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
