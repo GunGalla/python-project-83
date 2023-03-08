@@ -14,8 +14,13 @@ app = Flask(__name__)
 
 load_dotenv(find_dotenv())
 
-db = os.getenv('DB_PATH')
+user = os.getenv('PGUSER')
+database = os.getenv('PGDATABASE')
+host = os.getenv('PGHOST')
+port = os.getenv('PGPORT')
+password = os.getenv('PGPASSWORD')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+db = f'postgresql://{user}:{password}@{host}:{port}/{database}'
 
 
 def connect_db():
