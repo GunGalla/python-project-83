@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from validators.url import url
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
+from urllib.parse import urlparse
 import urllib
 import requests
 import os
@@ -39,7 +40,8 @@ def index():
 def urls():
     """Urls checking page"""
     if request.method == 'POST':
-        check_url = request.form.get('url')
+        entered_url = urlparse(request.form.get('url'))
+        check_url = f'{entered_url[0]}://{entered_url[1]}'
         if url(check_url) and len(check_url) < 255:
             db = connect_db()
             cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
