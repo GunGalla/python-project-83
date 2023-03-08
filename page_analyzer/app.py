@@ -14,13 +14,9 @@ app = Flask(__name__)
 
 load_dotenv(find_dotenv())
 
-user = os.getenv('PGUSER')
-database = os.getenv('PGDATABASE')
-host = os.getenv('PGHOST')
-port = os.getenv('PGPORT')
-password = os.getenv('PGPASSWORD')
+db = os.getenv('DATABASE_URL')
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-db = f'postgresql://{user}:{password}@{host}:{port}/{database}'
+
 
 
 def connect_db():
@@ -78,7 +74,7 @@ def urls():
                 ids.append(item[1])
             if len(ids) > 1:
                 cur.execute(f"SELECT * FROM url_checks"
-                            f"WHERE id in {tuple(ids)}")
+                            f" WHERE id IN {tuple(ids)}")
                 all_checks = cur.fetchall()
             else:
                 cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
@@ -119,7 +115,6 @@ def url_check(url_id):
         attrs = '(url_id, status_code'
         values_count = '(%s, %s'
         values = [f'{url_id}', r.status_code]
-        description = page.find('meta', {'name': 'description'}).get('content')
         if page.h1:
             attrs += ', h1'
             values_count += ', %s'
@@ -128,7 +123,8 @@ def url_check(url_id):
             attrs += ', title'
             values_count += ', %s'
             values.append(page.title.get_text())
-        if description:
+        if page.find('meta', {'name': 'description'}):
+            description = page.find('meta', {'name': 'description'}).get('content')
             attrs += ', description'
             values_count += ', %s'
             values.append(description)
