@@ -157,4 +157,5 @@ def url_check(url_id):
         flash('Страница успешно проверена')
     cur.close()
     db.close()
+    flash('Произошла ошибка при проверке')
     return redirect(url_for('dist_url', url_id=url_id))

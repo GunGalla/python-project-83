@@ -10,8 +10,8 @@ CREATE TABLE url_checks (
   id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   url_id bigint REFERENCES urls(id),
   status_code integer,
-  h1 varchar(255) NULL,
-  title varchar(255) NULL,
-  description varchar(500) NULL,
+  h1 varchar(255) DEFAULT '',
+  title varchar(255) DEFAULT '',
+  description varchar(500) DEFAULT '',
   created_at DATE
 );
