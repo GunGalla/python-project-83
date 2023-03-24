@@ -41,16 +41,8 @@
                 <td>{{ url_check.id }}</td>
                 <td>{{ url_check.status_code }}</td>
                 <td>{{ url_check.h1 }}</td>
-                {% if url_check.title %}
                 <td>{{ url_check.title }}</td>
-                {% else %}
-                <td></td>
-                {% endif %}
-                {% if url_check.description %}
                 <td>{{ url_check.description }}</td>
-                {% else %}
-                <td></td>
-                {% endif %}
                 <td>{{ url_check.created_at }}</td>
             </tr>
             {% endfor %}

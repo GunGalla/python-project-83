@@ -30,71 +30,86 @@ def connect_db():
         print('Can`t establish connection to database')
 
 
+def parse_url(url_check):
+    """Parsing and checking url"""
+    parsing = urlparse(url_check)
+    correct_url = f'{parsing[0]}://{parsing[1]}'
+    return correct_url
+
+
+def url_validation(url_val, url_check):
+    """Check if entered url valid"""
+    if not url(url_val) or len(url_check) > 255:
+        flash('Некорректный URL')
+        if url_check == '':
+            flash('URL Обязателен')
+        return True
+    pass
+
+
 @app.route('/')
 def index():
     """Home page view"""
     return render_template('index.html')
 
 
-@app.route('/urls', methods=['GET', 'POST'])
-def urls():
-    """Urls checking page"""
-    if request.method == 'POST':
-        entered_url = urlparse(request.form.get('url'))
-        print(entered_url[1])
-        check_url = f'{entered_url[0]}://{entered_url[1]}'
-        if url(check_url) and len(check_url) < 255:
-            db = connect_db()
-            cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-            cur.execute(f"SELECT * FROM urls WHERE name='{check_url}'")
-            not_unique = cur.fetchone()
-            if not_unique:
-                flash('Страница уже существует')
-                return redirect(url_for('dist_url', url_id=not_unique[0]))
-            cur.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
-                        (check_url, date.today()))
-            db.commit()
-            cur.execute(f"SELECT * FROM urls WHERE name='{check_url}'")
-            new_url = cur.fetchone()
-            cur.close()
-            db.close()
-            flash('Страница успешно добавлена')
-            return redirect(url_for('dist_url', url_id=new_url[0]))
+@app.get('/urls')
+def urls_get():
+    """Show urls list"""
+    db = connect_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute('SELECT * FROM urls ORDER BY id DESC')
+    all_urls = cur.fetchall()
+    cur.execute('SELECT url_id, MAX(id) FROM url_checks GROUP BY url_id')
+    latest_checks = cur.fetchall()
+    ids = []
+    if latest_checks:
+        for item in latest_checks:
+            ids.append(item[1])
+        if len(ids) > 1:
+            cur.execute(f"SELECT * FROM url_checks"
+                        f" WHERE id IN {tuple(ids)}")
+            all_checks = cur.fetchall()
         else:
-            flash('Некорректный URL')
-            if check_url == '://':
-                flash('URL Обязателен')
-            return render_template('index.html'), 422
+            cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
+            all_checks = cur.fetchall()
+        cur.close()
+        db.close()
+        return render_template(
+            'urls.html',
+            urls=all_urls,
+            all_checks=all_checks
+        )
+    else:
+        cur.close()
+        db.close()
+        return render_template('urls.html', urls=all_urls)
 
-    if request.method == 'GET':
-        db = connect_db()
-        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        cur.execute('SELECT * FROM urls ORDER BY id DESC')
-        all_urls = cur.fetchall()
-        cur.execute('SELECT url_id, MAX(id) FROM url_checks GROUP BY url_id')
-        latest_checks = cur.fetchall()
-        ids = []
-        if latest_checks:
-            for item in latest_checks:
-                ids.append(item[1])
-            if len(ids) > 1:
-                cur.execute(f"SELECT * FROM url_checks"
-                            f" WHERE id IN {tuple(ids)}")
-                all_checks = cur.fetchall()
-            else:
-                cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
-                all_checks = cur.fetchall()
-            cur.close()
-            db.close()
-            return render_template(
-                'urls.html',
-                urls=all_urls,
-                all_checks=all_checks
-            )
-        else:
-            cur.close()
-            db.close()
-            return render_template('urls.html', urls=all_urls)
+
+@app.post('/urls')
+def urls_post():
+    """Check url and show its page if url is valid"""
+    entered_url = request.form.get('url')
+    check = parse_url(entered_url)
+    if url_validation(check, entered_url):
+        return render_template('index.html'), 422
+
+    db = connect_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur.execute(f"SELECT * FROM urls WHERE name='{check}'")
+    not_unique = cur.fetchone()
+    if not_unique:
+        flash('Страница уже существует')
+        return redirect(url_for('dist_url', url_id=not_unique[0]))
+    cur.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
+                (check, date.today()))
+    db.commit()
+    cur.execute(f"SELECT * FROM urls WHERE name='{check}'")
+    new_url = cur.fetchone()
+    cur.close()
+    db.close()
+    flash('Страница успешно добавлена')
+    return redirect(url_for('dist_url', url_id=new_url[0]))
 
 
 @app.route('/urls/<url_id>')
