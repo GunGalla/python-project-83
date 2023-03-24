@@ -47,6 +47,34 @@ def url_validation(url_val, url_check):
     pass
 
 
+def url_parsing(item, url_id):
+    """Check SEO functionality of url"""
+    f = urllib.request.urlopen(item)
+    r = requests.get(item)
+    page = BeautifulSoup(f, 'lxml')
+    attrs = '(url_id, status_code'
+    values_count = '(%s, %s'
+    values = [f'{url_id}', r.status_code]
+    if page.h1:
+        attrs += ', h1'
+        values_count += ', %s'
+        values.append(page.h1.get_text())
+    if page.title:
+        attrs += ', title'
+        values_count += ', %s'
+        values.append(page.title.get_text())
+    if page.find('meta', {'name': 'description'}):
+        description = \
+            page.find('meta', {'name': 'description'}).get('content')
+        attrs += ', description'
+        values_count += ', %s'
+        values.append(description)
+    attrs += ', created_at)'
+    values_count += ', %s)'
+    values.append(date.today())
+    return attrs, values_count, values
+
+
 @app.route('/')
 def index():
     """Home page view"""
@@ -127,39 +155,22 @@ def url_check(url_id):
     try:
         requests.get(url_name[0])
     except requests.ConnectionError:
+        flash("Произошла ошибка при проверке")
+        return redirect(url_for('dist_url', url_id=url_id))
+
+    r = requests.get(url_name[0])
+
+    if r.status_code != 200:
         flash('Произошла ошибка при проверке')
         return redirect(url_for('dist_url', url_id=url_id))
-    r = requests.get(url_name[0])
-    if r.status_code == 200:
-        f = urllib.request.urlopen(url_name[0])
-        page = BeautifulSoup(f, 'lxml')
-        attrs = '(url_id, status_code'
-        values_count = '(%s, %s'
-        values = [f'{url_id}', r.status_code]
-        if page.h1:
-            attrs += ', h1'
-            values_count += ', %s'
-            values.append(page.h1.get_text())
-        if page.title:
-            attrs += ', title'
-            values_count += ', %s'
-            values.append(page.title.get_text())
-        if page.find('meta', {'name': 'description'}):
-            description = \
-                page.find('meta', {'name': 'description'}).get('content')
-            attrs += ', description'
-            values_count += ', %s'
-            values.append(description)
-        attrs += ', created_at)'
-        values_count += ', %s)'
-        values.append(date.today())
-        cur.execute("INSERT INTO url_checks "
-                    f"{attrs}"
-                    f"VALUES {values_count}",
-                    tuple(values))
-        db.commit()
-        flash('Страница успешно проверена')
+
+    parse_result = url_parsing(url_name[0], url_id)
+    cur.execute("INSERT INTO url_checks "
+                f"{parse_result[0]}"
+                f"VALUES {parse_result[1]}",
+                tuple(parse_result[2]))
+    db.commit()
+    flash('Страница успешно проверена')
     cur.close()
     db.close()
-    flash('Произошла ошибка при проверке')
     return redirect(url_for('dist_url', url_id=url_id))
