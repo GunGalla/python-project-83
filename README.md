@@ -12,9 +12,10 @@ Minimum required software to install the project is:
 
 This project was built using these tools:
 
-| Tool                                                                        | Description                                             |
-|-----------------------------------------------------------------------------|---------------------------------------------------------|
-| [poetry](https://poetry.eustace.io/)                                        | "Python dependency management and packaging made easy"  |
+| Tool                                                 | Description                                            |
+|------------------------------------------------------|--------------------------------------------------------|
+| [poetry](https://poetry.eustace.io/)                 | "Python dependency management and packaging made easy" |
+| [Flask](https://flask.palletsprojects.com/en/2.2.x/) | 'Lightweight framework for web apps"                   |
 
 To start the dev server you need to download build and then run following actions:
 

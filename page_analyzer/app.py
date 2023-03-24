@@ -1,5 +1,5 @@
 """Flask app"""
-from flask import Flask, flash, request, render_template, redirect
+from flask import Flask, flash, request, render_template, redirect, url_for
 from bs4 import BeautifulSoup
 from validators.url import url
 from datetime import date
@@ -41,6 +41,7 @@ def urls():
     """Urls checking page"""
     if request.method == 'POST':
         entered_url = urlparse(request.form.get('url'))
+        print(entered_url[1])
         check_url = f'{entered_url[0]}://{entered_url[1]}'
         if url(check_url) and len(check_url) < 255:
             db = connect_db()
@@ -49,22 +50,25 @@ def urls():
             not_unique = cur.fetchone()
             if not_unique:
                 flash('Страница уже существует')
-                return redirect(f'/urls/{not_unique[0]}')
+                return redirect(url_for('dist_url', url_id=not_unique[0]))
             cur.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
                         (check_url, date.today()))
             db.commit()
             cur.execute(f"SELECT * FROM urls WHERE name='{check_url}'")
             new_url = cur.fetchone()
+            cur.close()
+            db.close()
             flash('Страница успешно добавлена')
-            return redirect(f'/urls/{new_url[0]}')
+            return redirect(url_for('dist_url', url_id=new_url[0]))
         else:
             flash('Некорректный URL')
-            if check_url == '':
+            if check_url == '://':
                 flash('URL Обязателен')
             return render_template('index.html'), 422
 
     if request.method == 'GET':
-        cur = connect_db().cursor(cursor_factory=psycopg2.extras.DictCursor)
+        db = connect_db()
+        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
         cur.execute('SELECT * FROM urls ORDER BY id DESC')
         all_urls = cur.fetchall()
         cur.execute('SELECT url_id, MAX(id) FROM url_checks GROUP BY url_id')
@@ -80,25 +84,32 @@ def urls():
             else:
                 cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
                 all_checks = cur.fetchall()
+            cur.close()
+            db.close()
             return render_template(
                 'urls.html',
                 urls=all_urls,
                 all_checks=all_checks
             )
         else:
+            cur.close()
+            db.close()
             return render_template('urls.html', urls=all_urls)
 
 
 @app.route('/urls/<url_id>')
 def dist_url(url_id):
     """Dedicated url view"""
-    cur = connect_db().cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+    db = connect_db()
+    cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
     url = cur.fetchone()
     cur.execute(
         f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC"
     )
     url_checks = cur.fetchall()
+    cur.close()
+    db.close()
     return render_template('url.html', url=url, url_checks=url_checks)
 
 
@@ -109,6 +120,11 @@ def url_check(url_id):
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
     url_name = cur.fetchone()
+    try:
+        requests.get(url_name[0])
+    except requests.ConnectionError:
+        flash('Произошла ошибка при проверке')
+        return redirect(url_for('dist_url', url_id=url_id))
     r = requests.get(url_name[0])
     if r.status_code == 200:
         f = urllib.request.urlopen(url_name[0])
@@ -139,6 +155,6 @@ def url_check(url_id):
                     tuple(values))
         db.commit()
         flash('Страница успешно проверена')
-    else:
-        flash('Произошла ошибка при проверке')
-    return redirect(f'/urls/{url_id}')
+    cur.close()
+    db.close()
+    return redirect(url_for('dist_url', url_id=url_id))

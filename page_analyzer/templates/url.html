@@ -1,14 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-{% for msg in get_flashed_messages() %}
-{% if 'успешно' in msg %}
-<div class="alert alert-success" role="alert">{{ msg }}</div>
-{% elif msg == 'Страница уже существует' %}
-<div class="alert alert-info" role="alert">{{ msg }}</div>
-{% else %}
-<div class="alert alert-danger" role="alert">{{ msg }}</div>
-{% endif %}
-{% endfor %}
 <div class="container-lg mt-3">
     <h1>Сайт: {{ url.name }}</h1>
     <div class="table-responsive">
@@ -30,7 +21,7 @@
         </table>
     </div>
     <h2 class="mt-5 mb-3">Проверки</h2>
-    <form method="post" action="/urls/{{ url.id }}/checks">
+    <form method="post" action="{{ url_for('url_check', url_id=url.id) }}">
         <input type="submit" class="btn btn-primary" value="Запустить проверку">
     </form>
     <div>
@@ -49,11 +40,7 @@
             <tr>
                 <td>{{ url_check.id }}</td>
                 <td>{{ url_check.status_code }}</td>
-                {% if url_check.h1 %}
                 <td>{{ url_check.h1 }}</td>
-                {% else %}
-                <td></td>
-                {% endif %}
                 {% if url_check.title %}
                 <td>{{ url_check.title }}</td>
                 {% else %}
