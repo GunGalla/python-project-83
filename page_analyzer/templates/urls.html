@@ -13,14 +13,15 @@
             </tr>
             {% for url in urls %}
             <tr>
-                <td>{{ url.id }}</td>
-                <td><a href="{{ url_for('dist_url', url_id=url.id) }}">{{ url.name }}</a></td>
-                {% for check in all_checks %}
-                {% if url.id == check.1 %}
-                <td>{{ check.6 }}</td>
-                <td>{{ check.2 }}</td>
+                <td>{{ url.0 }}</td>
+                <td><a href="{{ url_for('dist_url', url_id=url.0) }}">{{ url.1 }}</a></td>
+                {% if url.9 %}
+                <td>{{ url.9 }}</td>
+                <td>{{ url.5 }}</td>
+                {% else %}
+                <td></td>
+                <td></td>
                 {% endif %}
-                {% endfor %}
             </tr>
             {% endfor %}
             </tbody>

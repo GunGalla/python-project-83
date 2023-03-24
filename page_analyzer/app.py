@@ -58,32 +58,21 @@ def urls_get():
     """Show urls list"""
     db = connect_db()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute('SELECT * FROM urls ORDER BY id DESC')
-    all_urls = cur.fetchall()
-    cur.execute('SELECT url_id, MAX(id) FROM url_checks GROUP BY url_id')
-    latest_checks = cur.fetchall()
-    ids = []
-    if latest_checks:
-        for item in latest_checks:
-            ids.append(item[1])
-        if len(ids) > 1:
-            cur.execute(f"SELECT * FROM url_checks"
-                        f" WHERE id IN {tuple(ids)}")
-            all_checks = cur.fetchall()
-        else:
-            cur.execute(f"SELECT * FROM url_checks WHERE id={ids[0]}")
-            all_checks = cur.fetchall()
-        cur.close()
-        db.close()
-        return render_template(
-            'urls.html',
-            urls=all_urls,
-            all_checks=all_checks
-        )
-    else:
-        cur.close()
-        db.close()
-        return render_template('urls.html', urls=all_urls)
+    cur.execute('''
+            SELECT u.*, c.*
+            FROM urls u
+            LEFT JOIN (
+                SELECT url_id, MAX(id) AS latest_check_id
+                FROM url_checks
+                GROUP BY url_id
+            ) latest_checks ON u.id = latest_checks.url_id
+            LEFT JOIN url_checks c ON latest_checks.latest_check_id = c.id
+            ORDER BY u.id DESC;
+        ''')
+    results = cur.fetchall()
+    cur.close()
+    db.close()
+    return render_template('urls.html', urls=results)
 
 
 @app.post('/urls')
