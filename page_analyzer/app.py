@@ -2,14 +2,17 @@
 from flask import Flask, flash, request, render_template, redirect, url_for
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
+from bs4 import BeautifulSoup
+import urllib
 import requests
 import os
 import psycopg2
 import psycopg2.extras
 
-from .get_db_conn import get_db_connection
-from .get_and_check_url import get_formatted_url, get_url_validation
-from .parse_url import get_url_page, get_url_parsing_values
+
+from .db_connect import get_db_connection
+from .urls import normalize_url, validate_url
+from .parse_url import get_url_parsing_values
 
 app = Flask(__name__)
 
@@ -17,6 +20,12 @@ load_dotenv(find_dotenv())
 
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+
+@app.errorhandler(404)
+def not_found_error():
+    """Handle 404 error"""
+    return render_template('404.html'), 404
 
 
 @app.route('/')
@@ -50,29 +59,29 @@ def urls_get():
 def urls_post():
     """Check url and show its page if url is valid"""
     entered_url = request.form.get('url')
-    formatted_url = get_formatted_url(entered_url)
+    formatted_url = normalize_url(entered_url)
 
-    errors = get_url_validation(formatted_url, entered_url)
+    errors = validate_url(formatted_url, entered_url)
     if errors:
         for error in errors:
-            flash(error)
+            flash(error, 'danger')
         return render_template('index.html'), 422
 
     db = get_db_connection()
-    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     cur.execute(f"SELECT * FROM urls WHERE name='{formatted_url}'")
     not_unique = cur.fetchone()
     if not_unique:
-        flash('Страница уже существует')
-        return redirect(url_for('url_get', url_id=not_unique[0]))
+        flash('Страница уже существует', 'info')
+        return redirect(url_for('url_get', url_id=not_unique.id))
     cur.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
                 (formatted_url, date.today()))
     db.commit()
     cur.execute(f"SELECT * FROM urls WHERE name='{formatted_url}'")
-    url_id = cur.fetchone()[0]
+    new_url = cur.fetchone()
     db.close()
-    flash('Страница успешно добавлена')
-    return redirect(url_for('url_get', url_id=url_id))
+    flash('Страница успешно добавлена', 'success')
+    return redirect(url_for('url_get', url_id=new_url.id))
 
 
 @app.route('/urls/<url_id>')
@@ -82,6 +91,8 @@ def url_get(url_id):
     cur = db.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
     url = cur.fetchone()
+    if not url:
+        return not_found_error()
     cur.execute(
         f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC"
     )
@@ -94,28 +105,31 @@ def url_get(url_id):
 def check_url(url_id):
     """Check url"""
     db = get_db_connection()
-    cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+    cur = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
-    url_name = cur.fetchone()[0]
+    url_name = cur.fetchone()
     try:
-        requests.get(url_name)
+        requests.get(url_name.name)
     except requests.ConnectionError:
-        flash("Произошла ошибка при проверке")
-        return redirect(url_for('url_get', url_id=url_id))
+        flash("Произошла ошибка при проверке", 'danger')
+        return redirect(url_for('url_get', url_id=url_name.id))
 
-    request_result = requests.get(url_name)
+    request_result = requests.get(url_name.name)
 
     if request_result.status_code != 200:
-        flash('Произошла ошибка при проверке')
+        flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('url_get', url_id=url_id))
 
-    page = get_url_page(url_name)
-    attrs, values_count, values = get_url_parsing_values(page, url_id)
+    file = urllib.request.urlopen(url_name.name)
+    page = BeautifulSoup(file, 'lxml')
+
+    attrs, values_replacers, values = get_url_parsing_values(page, url_id)
+
     cur.execute("INSERT INTO url_checks "
-                f"{attrs}"
-                f"VALUES {values_count}",
+                f"({', '.join(attrs)})"
+                f"VALUES ({', '.join(values_replacers)})",
                 tuple(values))
     db.commit()
-    flash('Страница успешно проверена')
+    flash('Страница успешно проверена', 'success')
     db.close()
     return redirect(url_for('url_get', url_id=url_id))

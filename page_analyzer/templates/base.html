@@ -21,14 +21,8 @@
     </nav>
 </header>
 <main class="flex-grow-1">
-    {% for msg in get_flashed_messages() %}
-        {% if 'успешно' in msg %}
-            <div class="alert alert-success" role="alert">{{ msg }}</div>
-        {% elif msg == 'Страница уже существует' %}
-            <div class="alert alert-info" role="alert">{{ msg }}</div>
-        {% else %}
-            <div class="alert alert-danger" role="alert">{{ msg }}</div>
-        {% endif %}
+    {% for category, message in get_flashed_messages(with_categories=True) %}
+        <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
     {% endfor %}
     {% block content %}
     {% endblock %}

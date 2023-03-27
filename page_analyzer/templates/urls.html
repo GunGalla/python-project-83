@@ -13,11 +13,11 @@
             </tr>
             {% for url in urls %}
             <tr>
-                <td>{{ url.0 }}</td>
-                <td><a href="{{ url_for('url_get', url_id=url.0) }}">{{ url.1 }}</a></td>
-                {% if url.9 %}
-                <td>{{ url.9 }}</td>
-                <td>{{ url.5 }}</td>
+                <td>{{ url.url_id }}</td>
+                <td><a href="{{ url_for('url_get', url_id=url.0) }}">{{ url.name }}</a></td>
+                {% if url.created_at %}
+                <td>{{ url.created_at }}</td>
+                <td>{{ url.status_code }}</td>
                 {% else %}
                 <td></td>
                 <td></td>
