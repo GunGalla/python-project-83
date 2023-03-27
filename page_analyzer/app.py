@@ -1,78 +1,22 @@
 """Flask app"""
 from flask import Flask, flash, request, render_template, redirect, url_for
-from bs4 import BeautifulSoup
-from validators.url import url
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
-from urllib.parse import urlparse
-import urllib
 import requests
 import os
 import psycopg2
 import psycopg2.extras
 
+from .get_db_conn import connect_db
+from .get_and_check_url import parse_url, url_validation
+from .parse_url import url_parsing
+
 app = Flask(__name__)
 
 load_dotenv(find_dotenv())
 
-DATABASE_URL = os.getenv('DATABASE_URL')
+
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
-
-def connect_db():
-    """Database connection"""
-    try:
-        # trying to connect to db
-        conn = psycopg2.connect(DATABASE_URL)
-        return conn
-    except ConnectionError:
-        # error in case of unable to connect to db
-        print('Can`t establish connection to database')
-
-
-def parse_url(url_check):
-    """Parsing and checking url"""
-    parsing = urlparse(url_check)
-    correct_url = f'{parsing[0]}://{parsing[1]}'
-    return correct_url
-
-
-def url_validation(url_val, url_check):
-    """Check if entered url valid"""
-    if not url(url_val) or len(url_check) > 255:
-        flash('Некорректный URL')
-        if url_check == '':
-            flash('URL Обязателен')
-        return True
-    pass
-
-
-def url_parsing(item, url_id):
-    """Check SEO functionality of url"""
-    f = urllib.request.urlopen(item)
-    r = requests.get(item)
-    page = BeautifulSoup(f, 'lxml')
-    attrs = '(url_id, status_code'
-    values_count = '(%s, %s'
-    values = [f'{url_id}', r.status_code]
-    if page.h1:
-        attrs += ', h1'
-        values_count += ', %s'
-        values.append(page.h1.get_text())
-    if page.title:
-        attrs += ', title'
-        values_count += ', %s'
-        values.append(page.title.get_text())
-    if page.find('meta', {'name': 'description'}):
-        description = \
-            page.find('meta', {'name': 'description'}).get('content')
-        attrs += ', description'
-        values_count += ', %s'
-        values.append(description)
-    attrs += ', created_at)'
-    values_count += ', %s)'
-    values.append(date.today())
-    return attrs, values_count, values
 
 
 @app.route('/')
