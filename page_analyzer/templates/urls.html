@@ -14,7 +14,7 @@
             {% for url in urls %}
             <tr>
                 <td>{{ url.0 }}</td>
-                <td><a href="{{ url_for('dist_url', url_id=url.0) }}">{{ url.1 }}</a></td>
+                <td><a href="{{ url_for('url_get', url_id=url.0) }}">{{ url.1 }}</a></td>
                 {% if url.9 %}
                 <td>{{ url.9 }}</td>
                 <td>{{ url.5 }}</td>

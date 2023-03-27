@@ -8,7 +8,7 @@ load_dotenv(find_dotenv())
 DATABASE_URL = os.getenv('DATABASE_URL')
 
 
-def connect_db():
+def get_db_connection():
     """Database connection"""
     try:
         # trying to connect to db

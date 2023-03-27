@@ -5,7 +5,7 @@ import requests
 import urllib
 
 
-def url_parsing(item, url_id):
+def get_url_parsing_values(item, url_id):
     """Check SEO functionality of url"""
     f = urllib.request.urlopen(item)
     r = requests.get(item)
