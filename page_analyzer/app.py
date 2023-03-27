@@ -9,7 +9,7 @@ import psycopg2.extras
 
 from .get_db_conn import get_db_connection
 from .get_and_check_url import get_formatted_url, get_url_validation
-from .parse_url import get_url_parsing_values
+from .parse_url import get_url_page, get_url_parsing_values
 
 app = Flask(__name__)
 
@@ -42,7 +42,6 @@ def urls_get():
             ORDER BY u.id DESC;
         ''')
     results = cur.fetchall()
-    cur.close()
     db.close()
     return render_template('urls.html', urls=results)
 
@@ -67,7 +66,6 @@ def urls_post():
     db.commit()
     cur.execute(f"SELECT * FROM urls WHERE name='{check}'")
     new_url = cur.fetchone()
-    cur.close()
     db.close()
     flash('Страница успешно добавлена')
     return redirect(url_for('url_get', url_id=new_url[0]))
@@ -84,7 +82,6 @@ def url_get(url_id):
         f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC"
     )
     url_checks = cur.fetchall()
-    cur.close()
     db.close()
     return render_template('url.html', url=url, url_checks=url_checks)
 
@@ -108,13 +105,13 @@ def check_url(url_id):
         flash('Произошла ошибка при проверке')
         return redirect(url_for('url_get', url_id=url_id))
 
-    parse_result = get_url_parsing_values(url_name[0], url_id)
+    page = get_url_page(url_name[0])
+    parse_result = get_url_parsing_values(page, url_id)
     cur.execute("INSERT INTO url_checks "
                 f"{parse_result[0]}"
                 f"VALUES {parse_result[1]}",
                 tuple(parse_result[2]))
     db.commit()
     flash('Страница успешно проверена')
-    cur.close()
     db.close()
     return redirect(url_for('url_get', url_id=url_id))

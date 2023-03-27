@@ -1,18 +1,22 @@
 """Parsing url to check its SEO and availability"""
 from bs4 import BeautifulSoup
 from datetime import date
-import requests
 import urllib
 
 
-def get_url_parsing_values(item, url_id):
-    """Check SEO functionality of url"""
-    f = urllib.request.urlopen(item)
-    r = requests.get(item)
+def get_url_page(url):
+    """Transform url to lxml page"""
+    f = urllib.request.urlopen(url)
     page = BeautifulSoup(f, 'lxml')
+    return page
+
+
+def get_url_parsing_values(page, url_id):
+    """Check SEO functionality of url"""
+    success_status_code = 200
     attrs = '(url_id, status_code'
     values_count = '(%s, %s'
-    values = [f'{url_id}', r.status_code]
+    values = [f'{url_id}', success_status_code]
     if page.h1:
         attrs += ', h1'
         values_count += ', %s'
