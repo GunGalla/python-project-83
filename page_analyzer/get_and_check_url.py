@@ -1,5 +1,4 @@
 """Module for getting entered url and checking it"""
-from flask import flash
 from urllib.parse import urlparse
 from validators.url import url
 
