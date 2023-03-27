@@ -13,9 +13,9 @@ def get_formatted_url(url_check):
 
 def get_url_validation(url_val, url_check):
     """Check if entered url valid"""
+    errors = []
     if not url(url_val) or len(url_check) > 255:
-        flash('Некорректный URL')
-        if url_check == '':
-            flash('URL Обязателен')
-        return True
-    pass
+        errors.append('Некорректный URL')
+    if url_check == '':
+        errors.append('URL Обязателен')
+    return errors

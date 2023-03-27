@@ -50,25 +50,29 @@ def urls_get():
 def urls_post():
     """Check url and show its page if url is valid"""
     entered_url = request.form.get('url')
-    check = get_formatted_url(entered_url)
-    if get_url_validation(check, entered_url):
+    formatted_url = get_formatted_url(entered_url)
+
+    errors = get_url_validation(formatted_url, entered_url)
+    if errors:
+        for error in errors:
+            flash(error)
         return render_template('index.html'), 422
 
     db = get_db_connection()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute(f"SELECT * FROM urls WHERE name='{check}'")
+    cur.execute(f"SELECT * FROM urls WHERE name='{formatted_url}'")
     not_unique = cur.fetchone()
     if not_unique:
         flash('Страница уже существует')
         return redirect(url_for('url_get', url_id=not_unique[0]))
     cur.execute("INSERT INTO urls (name, created_at) VALUES (%s, %s)",
-                (check, date.today()))
+                (formatted_url, date.today()))
     db.commit()
-    cur.execute(f"SELECT * FROM urls WHERE name='{check}'")
-    new_url = cur.fetchone()
+    cur.execute(f"SELECT * FROM urls WHERE name='{formatted_url}'")
+    url_id = cur.fetchone()[0]
     db.close()
     flash('Страница успешно добавлена')
-    return redirect(url_for('url_get', url_id=new_url[0]))
+    return redirect(url_for('url_get', url_id=url_id))
 
 
 @app.route('/urls/<url_id>')
@@ -92,25 +96,25 @@ def check_url(url_id):
     db = get_db_connection()
     cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
     cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
-    url_name = cur.fetchone()
+    url_name = cur.fetchone()[0]
     try:
-        requests.get(url_name[0])
+        requests.get(url_name)
     except requests.ConnectionError:
         flash("Произошла ошибка при проверке")
         return redirect(url_for('url_get', url_id=url_id))
 
-    r = requests.get(url_name[0])
+    request_result = requests.get(url_name)
 
-    if r.status_code != 200:
+    if request_result.status_code != 200:
         flash('Произошла ошибка при проверке')
         return redirect(url_for('url_get', url_id=url_id))
 
-    page = get_url_page(url_name[0])
-    parse_result = get_url_parsing_values(page, url_id)
+    page = get_url_page(url_name)
+    attrs, values_count, values = get_url_parsing_values(page, url_id)
     cur.execute("INSERT INTO url_checks "
-                f"{parse_result[0]}"
-                f"VALUES {parse_result[1]}",
-                tuple(parse_result[2]))
+                f"{attrs}"
+                f"VALUES {values_count}",
+                tuple(values))
     db.commit()
     flash('Страница успешно проверена')
     db.close()
