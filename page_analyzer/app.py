@@ -1,5 +1,13 @@
 """Flask app"""
-from flask import Flask, flash, request, render_template, redirect, url_for
+from flask import (
+    Flask,
+    flash,
+    request,
+    render_template,
+    redirect,
+    url_for,
+    abort,
+)
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
@@ -20,12 +28,6 @@ load_dotenv(find_dotenv())
 
 
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-
-
-@app.errorhandler(404)
-def not_found_error():
-    """Handle 404 error"""
-    return render_template('404.html'), 404
 
 
 @app.route('/')
@@ -92,7 +94,7 @@ def url_get(url_id):
     cur.execute(f"SELECT * FROM urls WHERE id={url_id}")
     url = cur.fetchone()
     if not url:
-        return not_found_error()
+        return render_template('404.html'), 404
     cur.execute(
         f"SELECT * FROM url_checks WHERE url_id={url_id} ORDER BY id DESC"
     )
@@ -107,28 +109,39 @@ def check_url(url_id):
     db = get_db_connection()
     cur = db.cursor(cursor_factory=psycopg2.extras.NamedTupleCursor)
     cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
-    url_name = cur.fetchone()
+    url = cur.fetchone()
     try:
-        requests.get(url_name.name)
+        request = requests.get(url.name)
     except requests.ConnectionError:
         flash("Произошла ошибка при проверке", 'danger')
-        return redirect(url_for('url_get', url_id=url_name.id))
+        return redirect(url_for('url_get', url_id=url_id))
 
-    request_result = requests.get(url_name.name)
-
-    if request_result.status_code != 200:
+    if request.status_code != 200:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('url_get', url_id=url_id))
 
-    file = urllib.request.urlopen(url_name.name)
-    page = BeautifulSoup(file, 'lxml')
+    page = BeautifulSoup(request.text, 'lxml')
 
-    attrs, values_replacers, values = get_url_parsing_values(page, url_id)
+    result = get_url_parsing_values(page)
+    result['url_id'] = url_id
 
-    cur.execute("INSERT INTO url_checks "
-                f"({', '.join(attrs)})"
-                f"VALUES ({', '.join(values_replacers)})",
-                tuple(values))
+    cur.execute("INSERT INTO url_checks("
+                "url_id,"
+                "status_code,"
+                "h1,"
+                "title,"
+                "description,"
+                "created_at"
+                ")"
+                f"VALUES (%s, %s, %s, %s, %s, %s)",
+                (
+                    result['url_id'],
+                    result['status_code'],
+                    result['h1'],
+                    result['title'],
+                    result['description'],
+                    result['created_at'],
+                ))
     db.commit()
     flash('Страница успешно проверена', 'success')
     db.close()
