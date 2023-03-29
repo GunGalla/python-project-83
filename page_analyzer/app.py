@@ -1,17 +1,8 @@
 """Flask app"""
-from flask import (
-    Flask,
-    flash,
-    request,
-    render_template,
-    redirect,
-    url_for,
-    abort,
-)
+from flask import Flask, flash, request, render_template, redirect, url_for
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
 from bs4 import BeautifulSoup
-import urllib
 import requests
 import os
 import psycopg2
@@ -133,7 +124,7 @@ def check_url(url_id):
                 "description,"
                 "created_at"
                 ")"
-                f"VALUES (%s, %s, %s, %s, %s, %s)",
+                "VALUES (%s, %s, %s, %s, %s, %s)",
                 (
                     result['url_id'],
                     result['status_code'],
