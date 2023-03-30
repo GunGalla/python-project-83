@@ -1,11 +1,14 @@
 """Parsing url to check its SEO and availability"""
 from datetime import date
+from bs4 import BeautifulSoup
 
 
-def get_url_parsing_values(page):
+def get_page_data(response):
     """Check SEO functionality of url"""
 
-    result = {'status_code': 200}
+    result = {'status_code': response.status_code}
+
+    page = BeautifulSoup(response.text, 'html.parser')
 
     result['h1'] = page.h1.get_text() if page.h1 else ''
 

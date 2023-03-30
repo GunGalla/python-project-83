@@ -2,16 +2,15 @@
 from flask import Flask, flash, request, render_template, redirect, url_for
 from datetime import date
 from dotenv import load_dotenv, find_dotenv
-from bs4 import BeautifulSoup
 import requests
 import os
 import psycopg2
 import psycopg2.extras
 
 
-from .db_connect import get_db_connection
-from .urls import normalize_url, validate_url
-from .parse_url import get_url_parsing_values
+from page_analyzer.db_connect import get_db_connection
+from page_analyzer.urls import normalize_url, validate_url
+from page_analyzer.parse_url import get_page_data
 
 app = Flask(__name__)
 
@@ -102,19 +101,16 @@ def check_url(url_id):
     cur.execute(f"SELECT name FROM urls WHERE id={url_id}")
     url = cur.fetchone()
     try:
-        request = requests.get(url.name)
+        response = requests.get(url.name)
     except requests.ConnectionError:
         flash("Произошла ошибка при проверке", 'danger')
         return redirect(url_for('url_get', url_id=url_id))
 
-    if request.status_code != 200:
+    if response.status_code != 200:
         flash('Произошла ошибка при проверке', 'danger')
         return redirect(url_for('url_get', url_id=url_id))
 
-    page = BeautifulSoup(request.text, 'lxml')
-
-    result = get_url_parsing_values(page)
-    result['url_id'] = url_id
+    result = get_page_data(response)
 
     cur.execute("INSERT INTO url_checks("
                 "url_id,"
@@ -126,7 +122,7 @@ def check_url(url_id):
                 ")"
                 "VALUES (%s, %s, %s, %s, %s, %s)",
                 (
-                    result['url_id'],
+                    url_id,
                     result['status_code'],
                     result['h1'],
                     result['title'],
